@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gim Edukasi: Ekspedisi Matematika Galaksi - Edisi Paket B</title>
+    
+    <!-- Tailwind CSS (Desain Modern UI) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome (Ikon) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MathJax (Render Matematika LaTeX) -->
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Nunito:wght@400;700;800&display=swap');
+
+        :root {
+            --bg-color: #080b12;
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --accent: #f59e0b;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.4), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(88, 28, 135, 0.4), transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .font-display { font-family: 'Orbitron', sans-serif; }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-panel {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .btn-glow { animation: pulse-glow 2s infinite; }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            width: 100%;
+            padding: 2rem 1rem;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        /* Map Styling */
+        .map-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500"><rect width="800" height="500" fill="%230f172a"/><path d="M 100 400 Q 250 400 300 250 T 500 200 T 700 100" fill="none" stroke="%233b82f6" stroke-width="4" stroke-dasharray="10 10" opacity="0.6"/></svg>') center/cover no-repeat;
+            border-radius: 2rem;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .level-node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1.25rem;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .level-node.locked { background: #475569; color: #94a3b8; border: 3px solid #334155; cursor: not-allowed; opacity: 0.8; }
+        .level-node.unlocked { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: 3px solid #60a5fa; cursor: pointer; animation: pulse-glow 2s infinite; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        .level-node.unlocked:hover { transform: translate(-50%, -50%) scale(1.15); }
+        .level-node.completed { background: linear-gradient(135deg, #10b981, #059669); color: white; border: 3px solid #34d399; cursor: pointer; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+        
+        #node-1 { bottom: 10%; left: 15%; }
+        #node-2 { bottom: 25%; left: 35%; }
+        #node-3 { bottom: 45%; left: 50%; }
+        #node-4 { top: 35%; left: 65%; }
+        #node-5 { top: 15%; left: 80%; }
+        #node-6 { top: 10%; left: 90%; width: 70px; height: 70px; background: linear-gradient(135deg, #ef4444, #b91c1c); border-color: #fca5a5;}
+
+        /* Options */
+        .option-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            background: rgba(30, 41, 59, 0.6);
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-4px) scale(1.02);
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            box-shadow: 0 10px 20px -10px rgba(59, 130, 246, 0.5);
+        }
+        .option-btn.correct { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+        .option-btn.wrong { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+
+        /* Print Styles */
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .glass, .glass-panel { background: white !important; box-shadow: none !important; border: 1px solid #ccc !important; color: black !important; filter: none !important; }
+            * { text-shadow: none !important; box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- Animated Background Canvas -->
+    <canvas id="space-bg" class="fixed inset-0 w-full h-full z-[-1]"></canvas>
+
+    <!-- SCREEN 1: COVER -->
+    <div id="screen-cover" class="screen active">
+        <div class="glass-panel rounded-3xl p-8 md:p-12 max-w-3xl w-full text-center relative overflow-hidden">
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-blue-500 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob"></div>
+            <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob animation-delay-2000"></div>
+            
+            <h1 class="font-display text-4xl md:text-6xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 drop-shadow-lg animate-float">
+                EKSPEDISI MATEMATIKA
+            </h1>
+            <h2 class="text-xl md:text-2xl text-blue-200 mb-8 font-semibold">Galaksi Bilangan & Pecahan (Paket B)</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 text-left mb-8">
+                <div class="bg-black/30 p-5 rounded-2xl border border-white/10 hover:border-blue-500/50 transition-colors">
+                    <h3 class="text-lg font-bold text-yellow-400 mb-2"><i class="fas fa-bullseye mr-2"></i>Tujuan Pembelajaran</h3>
+                    <ul class="list-disc pl-5 space-y-1 text-sm text-gray-300">
+                        <li>Menguasai operasi hitung bilangan bulat.</li>
+                        <li>Memahami aturan prioritas (KUKABATAKU).</li>
+                        <li>Menyelesaikan penjumlahan & pengurangan pecahan.</li>
+                    </ul>
+                </div>
+                <div class="bg-black/30 p-5 rounded-2xl border border-white/10 hover:border-purple-500/50 transition-colors">
+                    <h3 class="text-lg font-bold text-purple-400 mb-2"><i class="fas fa-gamepad mr-2"></i>Panduan Misi</h3>
+                    <ul class="list-disc pl-5 space-y-1 text-sm text-gray-300">
+                        <li>Terdapat 6 Planet Tantangan.</li>
+                        <li>Tiap jawaban benar bernilai +100 poin.</li>
+                        <li>Hati-hati! Jawaban salah memotong 20 poin.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="initGame()" class="group relative px-8 py-4 font-bold text-xl rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(139,92,246,0.8)] hover:scale-105 transition-all duration-300 btn-glow">
+                <span class="flex items-center gap-2">
+                    <i class="fas fa-rocket group-hover:-translate-y-1 transition-transform"></i>
+                    MULAI MISI
+                </span>
+            </button>
+
+            <div class="mt-8 text-xs text-gray-400 opacity-75">
+                Dikembangkan untuk Kanwil Kemenag Prov. Gorontalo<br>
+                Kurikulum Berbasis Cinta (Mandiri, Offline)
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: REGISTRASI KADET -->
+    <div id="screen-register" class="screen">
+        <div class="glass-panel rounded-3xl p-8 max-w-md w-full text-center">
+            <h2 class="font-display text-3xl font-bold mb-6 text-blue-300">Identitas Kadet</h2>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-gray-300">Nama Astronot:</label>
+                    <input type="text" id="reg-name" class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all" placeholder="Masukkan nama...">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-gray-300">Pangkalan (Kelas):</label>
+                    <input type="text" id="reg-class" class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all" placeholder="Contoh: VII-A">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300 text-center mt-4">Pilih Avatar:</label>
+                    <div class="flex justify-center gap-4 text-4xl">
+                        <button class="avatar-btn hover:scale-110 transition-transform p-2 rounded-xl border-2 border-transparent focus:border-blue-500 bg-slate-800/50" onclick="selectAvatar('👨‍🚀', this)">👨‍🚀</button>
+                        <button class="avatar-btn hover:scale-110 transition-transform p-2 rounded-xl border-2 border-transparent focus:border-blue-500 bg-slate-800/50" onclick="selectAvatar('👩‍🚀', this)">👩‍🚀</button>
+                        <button class="avatar-btn hover:scale-110 transition-transform p-2 rounded-xl border-2 border-transparent focus:border-blue-500 bg-slate-800/50" onclick="selectAvatar('👽', this)">👽</button>
+                        <button class="avatar-btn hover:scale-110 transition-transform p-2 rounded-xl border-2 border-transparent focus:border-blue-500 bg-slate-800/50" onclick="selectAvatar('🤖', this)">🤖</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="startGame()" class="mt-8 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold shadow-lg transition-colors">
+                Masuk ke Peta Galaksi <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: MAP -->
+    <div id="screen-map" class="screen">
+        <div class="w-full max-w-4xl flex flex-col items-center">
+            <!-- Header Map -->
+            <div class="w-full glass rounded-2xl p-4 mb-6 flex justify-between items-center shadow-lg border border-white/10">
+                <div class="flex items-center gap-4">
+                    <div id="hud-avatar" class="text-4xl bg-slate-800 p-2 rounded-xl border border-slate-600">👨‍🚀</div>
+                    <div>
+                        <div id="hud-name" class="font-bold text-xl text-blue-300">Kadet</div>
+                        <div id="hud-class" class="text-xs text-slate-400">Pangkalan</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Total Poin Edukasi</div>
+                    <div class="font-display text-3xl font-black text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
+                        <i class="fas fa-star text-sm mr-1"></i><span id="hud-score">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Map -->
+            <div class="map-container relative">
+                <div id="node-1" class="level-node unlocked" onclick="openLevel(1)" title="Level 1: Dasar Bulat">1</div>
+                <div id="node-2" class="level-node locked" onclick="openLevel(2)" title="Level 2: Lanjut Bulat">2</div>
+                <div id="node-3" class="level-node locked" onclick="openLevel(3)" title="Level 3: Campuran KUKABATAKU">3</div>
+                <div id="node-4" class="level-node locked" onclick="openLevel(4)" title="Level 4: Pecahan Sama">4</div>
+                <div id="node-5" class="level-node locked" onclick="openLevel(5)" title="Level 5: Pecahan Beda">5</div>
+                <div id="node-6" class="level-node locked" onclick="openLevel(6)" title="Level 6: Supernova (Boss)"><i class="fas fa-skull text-3xl"></i></div>
+                
+                <div id="map-player" class="absolute text-5xl transition-all duration-1000 ease-in-out z-20 animate-float" style="bottom: 10%; left: 15%; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));">👨‍🚀</div>
+            </div>
+
+            <button onclick="finishGameEarly()" class="mt-6 text-sm text-red-400 hover:text-red-300 underline"><i class="fas fa-flag-checkered mr-1"></i> Akhiri Ekspedisi & Lihat Laporan</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: INTRO MATERI -->
+    <div id="screen-materi" class="screen">
+        <div class="glass-panel rounded-3xl p-8 max-w-2xl w-full">
+            <h2 id="materi-title" class="font-display text-3xl font-bold mb-4 text-blue-300 border-b border-blue-500/30 pb-4">
+                Transmisi Masuk...
+            </h2>
+            <div id="materi-content" class="prose prose-invert max-w-none text-lg text-gray-200 leading-relaxed mb-8">
+                <!-- Content injected here -->
+            </div>
+            <button onclick="startQuiz()" class="w-full py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                MULAI TANTANGAN <i class="fas fa-play ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 5: KUIS INTERAKTIF -->
+    <div id="screen-quiz" class="screen relative">
+        <!-- Floating Score indicator -->
+        <div id="point-floater" class="absolute top-1/4 right-1/4 text-4xl font-black font-display text-green-400 opacity-0 pointer-events-none transition-all duration-1000 z-50"></div>
+
+        <div class="w-full max-w-3xl">
+            <!-- Quiz Header -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="glass px-4 py-2 rounded-full font-bold text-blue-300">
+                    <i class="fas fa-layer-group mr-2"></i>Soal <span id="q-current">1</span>/10
+                </div>
+                <div class="glass px-4 py-2 rounded-full font-bold text-yellow-400 flex items-center gap-2">
+                    <i class="fas fa-star"></i> <span id="q-score">0</span>
+                </div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="glass-panel rounded-3xl p-6 md:p-10 mb-6 relative shadow-2xl">
+                <div id="q-visual" class="mb-4"></div>
+                <h3 id="q-text" class="text-xl md:text-2xl font-semibold leading-relaxed">
+                    <!-- Question injected here -->
+                </h3>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="q-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Buttons injected here -->
+            </div>
+
+            <!-- Feedback Modal (Overlay) -->
+            <div id="feedback-overlay" class="absolute inset-0 bg-slate-900/90 backdrop-blur-sm z-40 hidden flex-col items-center justify-center p-6 text-center rounded-3xl border-2">
+                <div id="feedback-icon" class="text-6xl mb-4"></div>
+                <h3 id="feedback-title" class="font-display text-3xl font-bold mb-2"></h3>
+                <div id="feedback-text" class="text-lg text-gray-300 mb-8 max-w-md"></div>
+                <div class="text-sm bg-slate-800/80 p-3 rounded-lg text-slate-300 mb-6 w-full max-w-md">
+                    Perolehan Poin: <span id="feedback-points" class="font-bold"></span>
+                </div>
+                <button onclick="nextQuestion()" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition-transform hover:scale-105 shadow-lg">
+                    Lanjut <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 6: REFLEKSI & LAPORAN -->
+    <div id="screen-report" class="screen print:!flex print:!p-0 print:!bg-white">
+        <div class="glass-panel rounded-3xl p-8 max-w-3xl w-full print:border-none print:shadow-none print:w-full print:max-w-none print:text-black">
+            
+            <div class="text-center mb-8">
+                <i class="fas fa-graduation-cap text-6xl text-yellow-400 mb-4 print:text-black"></i>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 print:text-black print:bg-none">
+                    LAPORAN EKSPEDISI MATEMATIKA
+                </h2>
+                <p class="text-slate-400 print:text-slate-600">Kurikulum Berbasis Cinta - Kantor Wilayah Kementerian Agama Prov. Gorontalo</p>
+            </div>
+
+            <div class="bg-slate-800/50 print:bg-slate-100 p-6 rounded-2xl mb-8 border border-white/10 print:border-slate-300">
+                <div class="grid grid-cols-2 gap-y-4 text-lg">
+                    <div class="text-slate-400 font-bold print:text-slate-600">Nama Astronot:</div>
+                    <div id="rep-name" class="font-bold">-</div>
+                    
+                    <div class="text-slate-400 font-bold print:text-slate-600">Pangkalan (Kelas):</div>
+                    <div id="rep-class" class="font-bold">-</div>
+                    
+                    <div class="text-slate-400 font-bold print:text-slate-600">Total Poin:</div>
+                    <div class="font-display text-2xl font-black text-yellow-400 print:text-yellow-600">
+                        <span id="rep-score">0</span> 
+                        <span class="text-sm font-normal text-slate-400">/ 6000 Maks</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold mb-4 text-blue-300 print:text-blue-800 border-b border-slate-700 print:border-slate-300 pb-2">
+                <i class="fas fa-chart-line mr-2"></i> Analisis Kecerdasan Buatan
+            </h3>
+            <ul id="rep-analysis" class="space-y-4 mb-8 text-slate-300 print:text-slate-700 bg-black/20 print:bg-transparent p-4 rounded-xl">
+                <!-- Injected via JS -->
+            </ul>
+
+            <div class="flex gap-4 justify-center no-print mt-8">
+                <button onclick="window.print()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2">
+                    <i class="fas fa-file-pdf"></i> Cetak / Simpan PDF
+                </button>
+                <button onclick="location.reload()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2">
+                    <i class="fas fa-redo"></i> Main Ulang
+                </button>
+            </div>
+            
+            <!-- Signature area for print -->
+            <div class="print-only hidden mt-16 flex justify-between px-10 text-black">
+                <div class="text-center">
+                    <p class="mb-20">Mengetahui,<br>Guru Mata Pelajaran</p>
+                    <p class="font-bold border-t border-black pt-2">( ......................................... )</p>
+                </div>
+                <div class="text-center">
+                    <p class="mb-20">Gorontalo, .................... 2026<br>Siswa / Kadet</p>
+                    <p class="font-bold border-t border-black pt-2">( <span id="rep-sign-name"></span> )</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- NATIVE AUDIO ENGINE (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let bgmOscillator = null;
+        let bgmGain = null;
+
+        const Sounds = {
+            init: function() {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+            },
+            playTone: function(freq, type, duration, vol=0.1) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            correct: () => {
+                Sounds.playTone(523.25, 'sine', 0.1, 0.2); // C5
+                setTimeout(() => Sounds.playTone(659.25, 'sine', 0.1, 0.2), 100); // E5
+                setTimeout(() => Sounds.playTone(783.99, 'sine', 0.3, 0.2), 200); // G5
+            },
+            wrong: () => {
+                Sounds.playTone(150, 'sawtooth', 0.3, 0.2);
+                setTimeout(() => Sounds.playTone(100, 'sawtooth', 0.4, 0.2), 150);
+            },
+            click: () => Sounds.playTone(800, 'sine', 0.05, 0.05),
+            startBGM: () => {
+                if(bgmOscillator) return;
+                bgmOscillator = audioCtx.createOscillator();
+                bgmGain = audioCtx.createGain();
+                
+                bgmOscillator.type = 'triangle';
+                bgmGain.gain.value = 0.02; // Background drone
+                
+                bgmOscillator.frequency.setValueAtTime(110, audioCtx.currentTime); // A2
+                
+                const lfo = audioCtx.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.1;
+                const lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 10;
+                lfo.connect(lfoGain);
+                lfoGain.connect(bgmOscillator.frequency);
+                
+                bgmOscillator.connect(bgmGain);
+                bgmGain.connect(audioCtx.destination);
+                
+                bgmOscillator.start();
+                lfo.start();
+            },
+            bossBGM: () => {
+                if(bgmGain) {
+                    bgmGain.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.5);
+                    bgmOscillator.frequency.setValueAtTime(55, audioCtx.currentTime);
+                    bgmOscillator.type = 'square';
+                }
+            }
+        };
+
+        // --- GAME STATE ---
+        const state = {
+            player: { name: '', class: '', avatar: '👨‍🚀', score: 0 },
+            progress: { unlockedLevels: [1], completedLevels: [], scores: {1:0, 2:0, 3:0, 4:0, 5:0, 6:0} },
+            current: { level: 1, qIndex: 0 }
+        };
+
+        // --- STREAMING_CHUNK:Defining New Question Datasets (60 New Questions)... ---
+        const gameData = {
+            1: {
+                title: "Planet Alpha: Penjumlahan & Pengurangan Bulat",
+                intro: `<h3 class="text-2xl text-blue-300 font-bold mb-4">Misi: Navigasi Garis Bilangan Sektor B</h3>
+                        <p>Kadet, selamat datang di ekspedisi baru. Ingat aturan dasar pada garis bilangan:</p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Menambah $(+)$ artinya melangkah maju ke arah kanan.</li>
+                            <li>Mengurang $(-)$ artinya melangkah mundur ke arah kiri.</li>
+                            <li>Operasi kurang bertemu angka negatif seperti $-(-a)$ berubah menjadi penambahan $+a$.</li>
+                        </ul>`,
+                questions: [
+                    { q: "Hitunglah hasil dari $15 + (-9) = ...$", opts: ["$6$", "$-6$", "$24$", "$-24$"], ans: 0, expl: "Mulai dari $15$, melangkah mundur $9$ satuan ke kiri. Berhenti di $6$." },
+                    { q: "Selesaikan operasi berikut: $-14 - 7 = ...$", opts: ["$-7$", "$7$", "$-21$", "$21$"], ans: 2, expl: "Sudah di posisi $-14$, lalu melangkah mundur lagi $7$ satuan. Berhenti di $-21$." },
+                    { q: "Suhu puncak Gunung Everest pada pagi hari $-8^\\circ C$. Siang harinya suhu naik $12^\\circ C$. Suhu siang hari adalah...", opts: ["$4^\\circ C$", "$-4^\\circ C$", "$20^\\circ C$", "$-20^\\circ C$"], ans: 0, expl: "Naik berarti ditambah. $-8 + 12 = 4^\\circ C$." },
+                    { q: "Hasil dari $-20 + 35 = ...$", opts: ["$-15$", "$15$", "$-55$", "$55$"], ans: 1, expl: "Hutang 20 dibayar 35, sisa lebihnya adalah $15$." },
+                    { q: "Berapakah hasil dari $18 - (-6) = ...$", opts: ["$12$", "$-12$", "$24$", "$-24$"], ans: 2, expl: "Tanda kurang bertemu negatif berubah menjadi tambah: $18 + 6 = 24$." },
+                    { q: "Hitunglah: $-11 + (-13) = ...$", opts: ["$-2$", "$2$", "$-24$", "$24$"], ans: 2, expl: "Mundur $11$ langkah, ditambah mundur lagi $13$ langkah. Total mundur $24$ ($-24$)." },
+                    { q: "Suhu ruangan pendingin $5^\\circ C$. Jika diturunkan $16^\\circ C$, suhunya menjadi...", opts: ["$11^\\circ C$", "$-11^\\circ C$", "$21^\\circ C$", "$-21^\\circ C$"], ans: 1, expl: "Diturunkan artinya dikurang: $5 - 16 = -11^\\circ C$." },
+                    { q: "Selesaikanlah: $-25 - (-10) = ...$", opts: ["$-15$", "$15$", "$-35$", "$35$"], ans: 0, expl: "$-25 - (-10) = -25 + 10 = -15$." },
+                    { q: "Hasil dari $30 + (-12) - 8 = ...$", opts: ["$10$", "$26$", "$-10$", "$50$"], ans: 0, expl: "Pertama $30 - 12 = 18$. Kemudian $18 - 8 = 10$." },
+                    { q: "Jika $a = -9$ dan $b = 7$, berapakah nilai $a - b$ ?", opts: ["$-2$", "$2$", "$-16$", "$16$"], ans: 2, expl: "Substitusi nilai: $-9 - 7 = -16$." }
+                ]
+            },
+            2: {
+                title: "Planet Beta: Perkalian & Pembagian Bulat",
+                intro: `<h3 class="text-2xl text-purple-300 font-bold mb-4">Misi: Polarisasi Gelombang Energi</h3>
+                        <p>Kadet, perhatikan aturan tanda pada Perkalian dan Pembagian:</p>
+                        <div class="bg-black/30 p-4 rounded-xl mt-3 text-center grid grid-cols-2 gap-2 text-lg font-bold">
+                            <div class="text-green-400">Tanda Sama = Positif</div>
+                            <div class="text-red-400">Tanda Beda = Negatif</div>
+                            <div class="text-sm font-normal text-slate-300">$(+) \\times (+) = (+)$<br>$(-) \\times (-) = (+)$</div>
+                            <div class="text-sm font-normal text-slate-300">$(+) \\times (-) = (-)$<br>$(-) \\times (+) = (-)$</div>
+                        </div>`,
+                questions: [
+                    { q: "Hitunglah hasil dari $-9 \\times 6 = ...$", opts: ["$54$", "$-54$", "$15$", "$-15$"], ans: 1, expl: "Tanda berbeda (negatif dikali positif) menghasilkan tanda negatif: $-54$." },
+                    { q: "Berapakah hasil dari $-60 : (-12) = ...$", opts: ["$-5$", "$5$", "$-72$", "$72$"], ans: 1, expl: "Tanda sama (negatif dibagi negatif) menghasilkan tanda positif: $5$." },
+                    { q: "Nilai dari $15 \\times (-4)$ adalah...", opts: ["$-60$", "$60$", "$-11$", "$11$"], ans: 0, expl: "Positif dikali negatif menghasilkan negatif: $-60$." },
+                    { q: "Selesaikanlah: $-120 : 30 = ...$", opts: ["$4$", "$-4$", "$90$", "$-90$"], ans: 1, expl: "Negatif dibagi positif menghasilkan negatif: $120 : 30 = 4 \\implies -4$." },
+                    { q: "Hasil kali dari $-7 \\times (-8) = ...$", opts: ["$-56$", "$56$", "$-15$", "$15$"], ans: 1, expl: "Negatif dikali negatif hasilnya positif: $56$." },
+                    { q: "Berapakah $81 : (-9) = ...$", opts: ["$9$", "$-9$", "$72$", "$-72$"], ans: 1, expl: "Positif dibagi negatif hasilnya negatif: $-9$." },
+                    { q: "Jika $-5 \\times y = 35$, maka nilai $y$ adalah...", opts: ["$7$", "$-7$", "$30$", "$-30$"], ans: 1, expl: "$y = 35 : (-5) = -7$." },
+                    { q: "Hasil dari $-12 \\times (-3) \\times (-2) = ...$", opts: ["$72$", "$-72$", "$36$", "$-36$"], ans: 1, expl: "Pertama: $-12 \\times -3 = 36$. Lalu $36 \\times -2 = -72$." },
+                    { q: "Hitunglah: $0 : (-25) = ...$", opts: ["$-25$", "$0$", "$25$", "Tidak terdefinisi"], ans: 1, expl: "Nol dibagi bilangan bulat bukan nol hasilnya selalu $0$." },
+                    { q: "Kedalaman kapal selam berkurang $4$ meter setiap detik. Dalam $6$ detik, perubahannya...", opts: ["$-24$ m", "$24$ m", "$-10$ m", "$10$ m"], ans: 0, expl: "$-4 \\times 6 = -24$ meter." }
+                ]
+            },
+            3: {
+                title: "Sabuk Asteroid: Operasi Campuran (KUKABATAKU)",
+                intro: `<h3 class="text-2xl text-yellow-300 font-bold mb-4">Misi: Urutan Protokol Navigasi</h3>
+                        <p>Gunakan aturan hirarki matematika <strong>KUKABATAKU</strong>:</p>
+                        <ol class="list-decimal pl-5 mt-3 space-y-2 font-bold text-amber-200">
+                            <li><span class="text-white">Kurung:</span> Kerjakan operasi di dalam kurung terlebih dahulu.</li>
+                            <li><span class="text-white">Kali & Bagi:</span> Kerjakan berurutan dari kiri ke kanan.</li>
+                            <li><span class="text-white">Tambah & Kurang:</span> Kerjakan paling akhir berurutan dari kiri ke kanan.</li>
+                        </ol>`,
+                questions: [
+                    { q: "Hasil dari $15 + (-3) \\times 4 = ...$", opts: ["$48$", "$3$", "$-3$", "$-48$"], ans: 1, expl: "Perkalian dulu: $(-3) \\times 4 = -12$. Lalu $15 + (-12) = 3$." },
+                    { q: "Hitunglah: $(24 - 8) : (-4) = ...$", opts: ["$-4$", "$4$", "$-16$", "$16$"], ans: 0, expl: "Kurung dulu: $24 - 8 = 16$. Lalu $16 : (-4) = -4$." },
+                    { q: "Berapakah $-6 \\times (3 + 5) = ...$", opts: ["$-48$", "$48$", "$-13$", "$-23$"], ans: 0, expl: "Kurung dulu: $3 + 5 = 8$. Lalu $-6 \\times 8 = -48$." },
+                    { q: "Selesaikan: $30 : (-5) - 7 = ...$", opts: ["$-13$", "$13$", "$-1$", "$1$"], ans: 0, expl: "Pembagian dulu: $30 : (-5) = -6$. Lalu $-6 - 7 = -13$." },
+                    { q: "Hasil dari $18 - 6 \\times (-3) = ...$", opts: ["$-36$", "$36$", "$-360$", "$0$"], ans: 1, expl: "Perkalian dulu: $6 \\times (-3) = -18$. Lalu $18 - (-18) = 18 + 18 = 36$." },
+                    { q: "Hitunglah: $(-10 + 4) \\times (6 - 9) = ...$", opts: ["$-18$", "$18$", "$-42$", "$42$"], ans: 1, expl: "Kurung 1: $-6$. Kurung 2: $-3$. Kalikan: $-6 \\times -3 = 18$." },
+                    { q: "Selesaikan: $120 : (-30) + 20 = ...$", opts: ["$16$", "$-16$", "$24$", "$-24$"], ans: 0, expl: "Pembagian dulu: $120 : (-30) = -4$. Lalu $-4 + 20 = 16$." },
+                    { q: "Berapakah $-8 + (18 : -3) - 5 = ...$", opts: ["$-19$", "$19$", "$-9$", "$9$"], ans: 0, expl: "Kurung dulu: $18 : -3 = -6$. Urut kiri ke kanan: $-8 + (-6) - 5 = -19$." },
+                    { q: "Nilai dari $(12 + (-5)) \\times (-4)$ adalah...", opts: ["$-28$", "$28$", "$-68$", "$68$"], ans: 0, expl: "Kurung dulu: $12 + (-5) = 7$. Kalikan: $7 \\times (-4) = -28$." },
+                    { q: "Selesaikan: $60 - (30 + (-10)) : 4 = ...$", opts: ["$55$", "$5$", "$-55$", "$10$"], ans: 0, expl: "Kurung: $20$. Bagi: $20 : 4 = 5$. Terakhir: $60 - 5 = 55$." }
+                ]
+            },
+            4: {
+                title: "Nebula Pecahan Sama",
+                intro: `<h3 class="text-2xl text-emerald-300 font-bold mb-4">Misi: Konsolidasi Pecahan Homogen</h3>
+                        <p>Pada pecahan dengan penyebut yang sama:</p>
+                        <div class="bg-emerald-900/40 p-4 rounded-xl mt-3 border-l-4 border-emerald-500">
+                            <strong>Prinsip Utama:</strong> Cukup jumlahkan atau kurangkan angka PEMBILANG (atas). Angka PENYEBUT (bawah) tetap dan tidak dijumlahkan!
+                        </div>`,
+                questions: [
+                    { q: "Hitunglah $\\frac{3}{7} + \\frac{2}{7} = ...$", opts: ["$\\frac{5}{14}$", "$\\frac{5}{7}$", "$\\frac{6}{49}$", "$\\frac{1}{7}$"], ans: 1, expl: "Penyebut sudah sama (7). Jumlahkan pembilang: $3 + 2 = 5 \\implies \\frac{5}{7}$." },
+                    { q: "Berapakah $\\frac{9}{10} - \\frac{4}{10} = ...$", opts: ["$\\frac{5}{10}$", "$\\frac{5}{0}$", "$\\frac{13}{10}$", "$\\frac{5}{20}$"], ans: 0, expl: "Penyebut tetap 10. Pembilang: $9 - 4 = 5 \\implies \\frac{5}{10}$." },
+                    { q: "Hasil dari $\\frac{7}{15} + \\frac{6}{15} = ...$", opts: ["$\\frac{13}{30}$", "$\\frac{13}{15}$", "$\\frac{1}{15}$", "$\\frac{42}{225}$"], ans: 1, expl: "Pembilang dijumlahkan: $7 + 6 = 13 \\implies \\frac{13}{15}$." },
+                    { q: "Selesaikan: $\\frac{11}{14} - \\frac{8}{14} = ...$", opts: ["$\\frac{3}{14}$", "$\\frac{19}{14}$", "$\\frac{3}{0}$", "$\\frac{3}{28}$"], ans: 0, expl: "Pembilang dikurangkan: $11 - 8 = 3 \\implies \\frac{3}{14}$." },
+                    { q: "$\\frac{4}{9} + \\frac{5}{9} = ...$", opts: ["$\\frac{9}{18}$", "$\\frac{9}{9} = 1$", "$\\frac{1}{9}$", "$\\frac{20}{81}$"], ans: 1, expl: "Pembilang: $4 + 5 = 9 \\implies \\frac{9}{9} = 1$ utuh." },
+                    { q: "Berapa $\\frac{12}{17} - \\frac{5}{17} + \\frac{3}{17} = ...$", opts: ["$\\frac{10}{17}$", "$\\frac{14}{17}$", "$\\frac{4}{17}$", "$\\frac{10}{51}$"], ans: 0, expl: "Urut dari kiri: $12 - 5 = 7$. Kemudian $7 + 3 = 10 \\implies \\frac{10}{17}$." },
+                    { q: "Air di tanki berisi $\\frac{7}{8}$ liter, dipakai $\\frac{2}{8}$ liter. Sisanya...", opts: ["$\\frac{5}{8}$ liter", "$\\frac{9}{8}$ liter", "$\\frac{5}{16}$ liter", "$\\frac{5}{0}$ liter"], ans: 0, expl: "Pengurangan pecahan: $\\frac{7}{8} - \\frac{2}{8} = \\frac{5}{8}$ liter." },
+                    { q: "Hitung: $\\frac{2}{6} + \\frac{3}{6} = ...$", opts: ["$\\frac{5}{12}$", "$\\frac{5}{6}$", "$\\frac{6}{36}$", "$\\frac{1}{6}$"], ans: 1, expl: "$2 + 3 = 5 \\implies \\frac{5}{6}$." },
+                    { q: "$\\frac{13}{16} - \\frac{6}{16} - \\frac{3}{16} = ...$", opts: ["$\\frac{4}{16}$", "$\\frac{10}{16}$", "$\\frac{4}{48}$", "$\\frac{22}{16}$"], ans: 0, expl: "$13 - 6 = 7$. Lalu $7 - 3 = 4 \\implies \\frac{4}{16}$." },
+                    { q: "Selesaikan: $\\frac{4}{11} + \\frac{6}{11} - \\frac{2}{11} = ...$", opts: ["$\\frac{8}{11}$", "$\\frac{12}{11}$", "$\\frac{8}{33}$", "$\\frac{2}{11}$"], ans: 0, expl: "$4 + 6 = 10$. Lalu $10 - 2 = 8 \\implies \\frac{8}{11}$." }
+                ]
+            },
+            5: {
+                title: "Kawah Beda Dimensi (Pecahan Beda)",
+                intro: `<h3 class="text-2xl text-cyan-300 font-bold mb-4">Misi: Penyetaraan KPK Penyebut</h3>
+                        <p>Jika penyebut pecahan tidak sama:</p>
+                        <div class="bg-cyan-900/40 p-4 rounded-xl mt-3 border-l-4 border-cyan-500">
+                            <strong>Metode Langkah:</strong><br>
+                            1. Tentukan KPK penyebutnya.<br>
+                            2. Sesuaikan pembilangnya sebanding.<br>
+                            3. Operasikan pembilang setelah penyebut disamakan.
+                        </div>`,
+                questions: [
+                    { q: "Hitunglah $\\frac{1}{3} + \\frac{1}{6} = ...$", opts: ["$\\frac{2}{9}$", "$\\frac{3}{6}$", "$\\frac{2}{6}$", "$\\frac{1}{9}$"], ans: 1, expl: "KPK 3 & 6 adalah 6. Ubah $\\frac{1}{3} = \\frac{2}{6}$. Lalu $\\frac{2}{6} + \\frac{1}{6} = \\frac{3}{6}$." },
+                    { q: "Berapakah $\\frac{3}{4} - \\frac{1}{2} = ...$", opts: ["$\\frac{2}{2}$", "$\\frac{1}{4}$", "$\\frac{2}{4}$", "$\\frac{1}{2}$"], ans: 1, expl: "KPK 4 & 2 adalah 4. Ubah $\\frac{1}{2} = \\frac{2}{4}$. Lalu $\\frac{3}{4} - \\frac{2}{4} = \\frac{1}{4}$." },
+                    { q: "Hasil dari $\\frac{2}{5} + \\frac{1}{3} = ...$", opts: ["$\\frac{3}{8}$", "$\\frac{11}{15}$", "$\\frac{3}{15}$", "$\\frac{7}{15}$"], ans: 1, expl: "KPK 15. $\\frac{2}{5} = \\frac{6}{15}$ dan $\\frac{1}{3} = \\frac{5}{15}$. Hasil $\\frac{6+5}{15} = \\frac{11}{15}$." },
+                    { q: "Selesaikan: $\\frac{5}{6} - \\frac{1}{4} = ...$", opts: ["$\\frac{4}{2}$", "$\\frac{7}{12}$", "$\\frac{4}{12}$", "$\\frac{1}{2}$"], ans: 1, expl: "KPK 12. $\\frac{5}{6} = \\frac{10}{12}$ dan $\\frac{1}{4} = \\frac{3}{12}$. Hasil $\\frac{10-3}{12} = \\frac{7}{12}$." },
+                    { q: "$\\frac{2}{3} + \\frac{1}{5} = ...$", opts: ["$\\frac{3}{8}$", "$\\frac{13}{15}$", "$\\frac{3}{15}$", "$\\frac{11}{15}$"], ans: 1, expl: "KPK 15. $\\frac{10}{15} + \\frac{3}{15} = \\frac{13}{15}$." },
+                    { q: "Berapa $\\frac{7}{8} - \\frac{1}{3} = ...$", opts: ["$\\frac{6}{5}$", "$\\frac{13}{24}$", "$\\frac{6}{24}$", "$\\frac{19}{24}$"], ans: 1, expl: "KPK 24. $\\frac{21}{24} - \\frac{8}{24} = \\frac{13}{24}$." },
+                    { q: "Hitung: $\\frac{3}{8} + \\frac{1}{4} = ...$", opts: ["$\\frac{4}{12}$", "$\\frac{5}{8}$", "$\\frac{4}{8}$", "$\\frac{5}{16}$"], ans: 1, expl: "KPK 8. $\\frac{1}{4} = \\frac{2}{8}$. Hasil $\\frac{3}{8} + \\frac{2}{8} = \\frac{5}{8}$." },
+                    { q: "$\\frac{4}{5} - \\frac{1}{2} = ...$", opts: ["$\\frac{3}{3}$", "$\\frac{3}{10}$", "$\\frac{7}{10}$", "$\\frac{3}{5}$"], ans: 1, expl: "KPK 10. $\\frac{8}{10} - \\frac{5}{10} = \\frac{3}{10}$." },
+                    { q: "Minyak goreng $\\frac{2}{3}$ kg, dipakai $\\frac{1}{4}$ kg. Sisanya...", opts: ["$\\frac{1}{1}$ kg", "$\\frac{5}{12}$ kg", "$\\frac{1}{12}$ kg", "$\\frac{7}{12}$ kg"], ans: 1, expl: "KPK 12. $\\frac{8}{12} - \\frac{3}{12} = \\frac{5}{12}$ kg." },
+                    { q: "Selesaikan: $\\frac{1}{2} + \\frac{1}{4} - \\frac{1}{6} = ...$", opts: ["$\\frac{1}{0}$", "$\\frac{7}{12}$", "$\\frac{5}{12}$", "$\\frac{1}{12}$"], ans: 1, expl: "KPK 12. $\\frac{6}{12} + \\frac{3}{12} - \\frac{2}{12} = \\frac{7}{12}$." }
+                ]
+            },
+            6: {
+                title: "Supernova (Ujian Campuran Total)",
+                intro: `<h3 class="text-3xl text-red-500 font-bold mb-4 font-display animate-pulse">PERINGATAN: SUPERNOVA SEKTOR B</h3>
+                        <p class="text-red-200">Ujian integrasi penuh! Gabungan operasi bilangan bulat, KUKABATAKU, hingga pecahan biasa.</p>`,
+                questions: [
+                    { q: "Berapakah $-15 + 6 \\times (-3) = ...$", opts: ["$-33$", "$33$", "$-27$", "$27$"], ans: 0, expl: "Perkalian dulu: $6 \\times (-3) = -18$. Lalu $-15 + (-18) = -33$." },
+                    { q: "Hitunglah $\\frac{3}{8} + \\frac{1}{4} = ...$", opts: ["$\\frac{4}{12}$", "$\\frac{5}{8}$", "$\\frac{1}{2}$", "$\\frac{7}{8}$"], ans: 1, expl: "KPK 8. $\\frac{3}{8} + \\frac{2}{8} = \\frac{5}{8}$." },
+                    { q: "Selesaikan: $(25 - (-5)) : (-6) = ...$", opts: ["$-5$", "$5$", "$-3$", "$3$"], ans: 0, expl: "Kurung: $25 - (-5) = 30$. Pembagian: $30 : (-6) = -5$." },
+                    { q: "Jika $a = -4, b = 6$, berapakah $a \\times b - b$ ?", opts: ["$-30$", "$30$", "$-18$", "$18$"], ans: 0, expl: "Substitusi: $(-4 \\times 6) - 6 = -24 - 6 = -30$." },
+                    { q: "Hasil dari $\\frac{5}{6} - \\frac{1}{2} + \\frac{1}{3} = ...$", opts: ["$\\frac{5}{7}$", "$\\frac{4}{6}$", "$\\frac{2}{6}$", "$\\frac{1}{6}$"], ans: 1, expl: "KPK 6. $\\frac{5}{6} - \\frac{3}{6} + \\frac{2}{6} = \\frac{4}{6}$." },
+                    { q: "Selesaikan: $-36 : 12 \\times (-5) = ...$", opts: ["$-15$", "$15$", "$-60$", "$60$"], ans: 1, expl: "Dari kiri: $-36 : 12 = -3$. Lalu $-3 \\times (-5) = 15$." },
+                    { q: "Suhu es $-6^\\circ C$ dan suhu air $22^\\circ C$. Beda suhunya...", opts: ["$16^\\circ C$", "$28^\\circ C$", "$-28^\\circ C$", "$-16^\\circ C$"], ans: 1, expl: "Selisih = $22 - (-6) = 22 + 6 = 28^\\circ C$." },
+                    { q: "Berapa $\\frac{3}{4} - (\\frac{1}{3} + \\frac{1}{6}) = ...$", opts: ["$\\frac{3}{12}$", "$\\frac{5}{12}$", "$\\frac{1}{12}$", "$\\frac{7}{12}$"], ans: 0, expl: "Kurung: $\\frac{2}{6} + \\frac{1}{6} = \\frac{3}{6} = \\frac{6}{12}$. Pengurangan: $\\frac{9}{12} - \\frac{6}{12} = \\frac{3}{12}$." },
+                    { q: "Hitung: $(-8 + 3) \\times 5 - (-15) = ...$", opts: ["$-10$", "$10$", "$-40$", "$40$"], ans: 0, expl: "Kurung: $-5$. Kalikan: $-5 \\times 5 = -25$. Pengurangan: $-25 - (-15) = -25 + 15 = -10$." },
+                    { q: "Tantangan: $\\frac{2}{3} + \\frac{1}{2} \\times (-1) = ...$", opts: ["$\\frac{1}{6}$", "$\\frac{5}{6}$", "$\\frac{3}{6}$", "$\\frac{2}{6}$"], ans: 0, expl: "Perkalian dulu: $\\frac{1}{2} \\times (-1) = -\\frac{1}{2}$. Lalu $\\frac{2}{3} - \\frac{1}{2} = \\frac{4}{6} - \\frac{3}{6} = \\frac{1}{6}$." }
+                ]
+            }
+        };
+
+        // --- STREAMING_CHUNK:Game Logic Engine... ---
+        function safeMathJaxRender() {
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise().catch((err) => console.log('MathJax error: ', err));
+            }
+        }
+
+        function playClick() { Sounds.click(); }
+
+        function selectAvatar(icon, btnElement) {
+            playClick();
+            state.player.avatar = icon;
+            document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('border-blue-500', 'bg-blue-500/20'));
+            btnElement.classList.add('border-blue-500', 'bg-blue-500/20');
+        }
+
+        function startGame() {
+            const name = document.getElementById('reg-name').value.trim();
+            const kelas = document.getElementById('reg-class').value.trim();
+            
+            if(!name || !kelas) {
+                alert("Kadet, nama dan pangkalan tidak boleh kosong!");
+                return;
+            }
+            
+            playClick();
+            state.player.name = name;
+            state.player.class = kelas;
+            
+            document.getElementById('hud-name').innerText = name;
+            document.getElementById('hud-class').innerText = kelas;
+            document.getElementById('hud-avatar').innerText = state.player.avatar;
+            
+            updateMapUI();
+            goToScreen('screen-map');
+        }
+
+        function goToScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function initGame() {
+            Sounds.init();
+            Sounds.startBGM();
+            playClick();
+            goToScreen('screen-register');
+        }
+
+        function updateMapUI() {
+            document.getElementById('hud-score').innerText = state.player.score;
+            for(let i=1; i<=6; i++) {
+                const node = document.getElementById(`node-${i}`);
+                node.className = 'level-node';
+                
+                if(state.progress.completedLevels.includes(i)) {
+                    node.classList.add('completed');
+                    node.innerHTML = '<i class="fas fa-check"></i>';
+                } else if (state.progress.unlockedLevels.includes(i)) {
+                    node.classList.add('unlocked');
+                    if(i===6) node.innerHTML = '<i class="fas fa-skull text-3xl"></i>';
+                    else node.innerText = i;
+                } else {
+                    node.classList.add('locked');
+                    node.innerHTML = '<i class="fas fa-lock text-sm"></i>';
+                }
+            }
+
+            const highestUnlocked = Math.max(...state.progress.unlockedLevels);
+            const targetNode = document.getElementById(`node-${highestUnlocked}`);
+            const playerIcon = document.getElementById('map-player');
+            playerIcon.innerText = state.player.avatar;
+            playerIcon.style.left = targetNode.style.left;
+            playerIcon.style.bottom = targetNode.style.bottom;
+            playerIcon.style.top = targetNode.style.top;
+        }
+
+        function openLevel(level) {
+            if(!state.progress.unlockedLevels.includes(level)) return;
+            playClick();
+            state.current.level = level;
+            state.current.qIndex = 0;
+            const data = gameData[level];
+            
+            document.getElementById('materi-title').innerHTML = `<i class="fas ${level===6?'fa-skull text-red-500':'fa-satellite-dish'}"></i> ${data.title}`;
+            document.getElementById('materi-content').innerHTML = data.intro;
+            
+            if(level === 6) Sounds.bossBGM();
+            
+            safeMathJaxRender();
+            goToScreen('screen-materi');
+        }
+
+        // --- STREAMING_CHUNK:Quiz Rendering & Scoring Logic... ---
+        function startQuiz() {
+            playClick();
+            goToScreen('screen-quiz');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const level = state.current.level;
+            const qData = gameData[level].questions[state.current.qIndex];
+            
+            document.getElementById('q-current').innerText = state.current.qIndex + 1;
+            document.getElementById('q-score').innerText = state.player.score;
+            document.getElementById('q-text').innerHTML = qData.q;
+            
+            const optGrid = document.getElementById('q-options');
+            optGrid.innerHTML = '';
+            
+            qData.opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full bg-slate-800/80 p-4 rounded-xl text-lg font-medium text-left border border-slate-600 shadow-md';
+                btn.innerHTML = `<span class="inline-block w-8 h-8 bg-slate-700 rounded-full text-center leading-8 mr-3 font-bold">${String.fromCharCode(65+idx)}</span> ${opt}`;
+                btn.onclick = () => handleAnswer(idx, btn);
+                optGrid.appendChild(btn);
+            });
+
+            document.getElementById('feedback-overlay').classList.add('hidden');
+            safeMathJaxRender();
+        }
+
+        function handleAnswer(selectedIndex, btnElement) {
+            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+            
+            const level = state.current.level;
+            const qData = gameData[level].questions[state.current.qIndex];
+            const isCorrect = (selectedIndex === qData.ans);
+            
+            let pointsEarned = 0;
+            
+            if (isCorrect) {
+                Sounds.correct();
+                btnElement.classList.add('correct');
+                pointsEarned = 100;
+                state.player.score += pointsEarned;
+                state.progress.scores[level] += pointsEarned;
+                showFeedback(true, qData.expl, pointsEarned);
+                showFloater(`+${pointsEarned}`);
+            } else {
+                Sounds.wrong();
+                btnElement.classList.add('wrong');
+                document.querySelectorAll('.option-btn')[qData.ans].classList.add('correct', 'opacity-70');
+                
+                pointsEarned = -20;
+                state.player.score = Math.max(0, state.player.score + pointsEarned);
+                state.progress.scores[level] = Math.max(0, state.progress.scores[level] + pointsEarned);
+                
+                showFeedback(false, qData.expl, pointsEarned);
+                showFloater(pointsEarned.toString(), true);
+            }
+            
+            document.getElementById('q-score').innerText = state.player.score;
+        }
+
+        function showFloater(text, isNegative=false) {
+            const floater = document.getElementById('point-floater');
+            floater.innerText = text;
+            floater.className = `absolute top-1/4 right-1/4 text-4xl font-black font-display pointer-events-none transition-all duration-1000 z-50 animate-float ${isNegative ? 'text-red-500' : 'text-green-400'}`;
+            
+            void floater.offsetWidth;
+            
+            floater.style.opacity = '1';
+            floater.style.transform = 'translateY(-50px) scale(1.5)';
+            
+            setTimeout(() => {
+                floater.style.opacity = '0';
+                floater.style.transform = 'translateY(0) scale(1)';
+            }, 1000);
+        }
+
+        function showFeedback(isCorrect, explanation, points) {
+            const overlay = document.getElementById('feedback-overlay');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            if (isCorrect) {
+                icon.innerHTML = '<i class="fas fa-check-circle text-green-400"></i>';
+                title.innerText = 'Jawaban Tepat!';
+                title.className = 'font-display text-3xl font-bold mb-2 text-green-400';
+            } else {
+                icon.innerHTML = '<i class="fas fa-times-circle text-red-500"></i>';
+                title.innerText = 'Transmisi Gagal';
+                title.className = 'font-display text-3xl font-bold mb-2 text-red-500';
+            }
+            
+            document.getElementById('feedback-text').innerHTML = explanation;
+            
+            const ptEl = document.getElementById('feedback-points');
+            ptEl.innerText = (points > 0 ? '+' : '') + points;
+            ptEl.className = `font-bold ${points > 0 ? 'text-green-400' : 'text-red-400'}`;
+            
+            safeMathJaxRender();
+        }
+
+        function nextQuestion() {
+            playClick();
+            state.current.qIndex++;
+            const totalQ = gameData[state.current.level].questions.length;
+
+            if(state.current.qIndex < totalQ) {
+                renderQuestion();
+            } else {
+                finishLevel();
+            }
+        }
+
+        function finishLevel() {
+            const level = state.current.level;
+            
+            if(!state.progress.completedLevels.includes(level)) {
+                state.progress.completedLevels.push(level);
+                if(level < 6 && !state.progress.unlockedLevels.includes(level+1)) {
+                    state.progress.unlockedLevels.push(level+1);
+                }
+            }
+
+            if(level === 6) {
+                generateReport();
+            } else { 
+                updateMapUI(); 
+                goToScreen('screen-map'); 
+            }
+        }
+
+        function finishGameEarly() {
+            if(confirm("Apakah kamu yakin ingin mengakhiri ekspedisi lebih awal? Laporan akan dicetak berdasarkan skor saat ini.")) {
+                generateReport();
+            }
+        }
+
+        function generateReport() {
+            playClick();
+            goToScreen('screen-report');
+            
+            document.getElementById('rep-name').innerText = state.player.name;
+            document.getElementById('rep-sign-name').innerText = state.player.name;
+            document.getElementById('rep-class').innerText = state.player.class;
+            document.getElementById('rep-score').innerText = state.player.score;
+            
+            const analysisEl = document.getElementById('rep-analysis');
+            analysisEl.innerHTML = '';
+            
+            const sc = state.progress.scores;
+            const makeItem = (icon, text) => `<li class="flex items-start gap-3"><i class="${icon} mt-1"></i> <span>${text}</span></li>`;
+
+            if(sc[1] > 800) analysisEl.innerHTML += makeItem('fas fa-check-circle text-green-500', '<strong>Logika Dasar Bulat:</strong> Sangat Sempurna. Paham arah pergeseran garis bilangan.');
+            else if(sc[1] > 0) analysisEl.innerHTML += makeItem('fas fa-exclamation-triangle text-yellow-500', '<strong>Logika Dasar Bulat:</strong> Cukup, namun ketelitian pada operasi angka negatif perlu diperhatikan.');
+
+            if(sc[2] > 800) analysisEl.innerHTML += makeItem('fas fa-check-circle text-green-500', '<strong>Hukum Tanda (Kali/Bagi):</strong> Dikuasai dengan sangat baik.');
+            
+            if(sc[3] > 800) analysisEl.innerHTML += makeItem('fas fa-check-circle text-green-500', '<strong>Prioritas Operasi (KUKABATAKU):</strong> Sangat presisi mengeksekusi operasi bertingkat.');
+            else if(sc[3] > 0) analysisEl.innerHTML += makeItem('fas fa-times-circle text-red-400', '<strong>Prioritas Operasi:</strong> Perlu pembiasaan pengerjaan perkalian/pembagian sebelum penjumlahan/pengurangan.');
+
+            if(sc[4] > 800) analysisEl.innerHTML += makeItem('fas fa-check-circle text-green-500', '<strong>Pecahan Penyebut Sama:</strong> Sangat baik.');
+            
+            if(sc[5] > 800) analysisEl.innerHTML += makeItem('fas fa-check-circle text-green-500', '<strong>Pecahan Beda Penyebut:</strong> Terampil menyamakan penyebut menggunakan KPK.');
+            else if(sc[5] > 0) analysisEl.innerHTML += makeItem('fas fa-exclamation-triangle text-yellow-500', '<strong>Pecahan Beda Penyebut:</strong> Perlu lebih teliti lagi saat menyamakan penyebut pecahan.');
+
+            if(sc[6] > 800) analysisEl.innerHTML += makeItem('fas fa-star text-yellow-400', '<strong class="text-yellow-400">Kategori ELITE:</strong> Berhasil menaklukkan seluruh ujian integrasi matematika galaksi!');
+
+            if(analysisEl.innerHTML === '') {
+                analysisEl.innerHTML = makeItem('fas fa-info-circle text-blue-400', 'Kadet belum menyelesaikan cukup banyak misi untuk analisis menyeluruh.');
+            }
+        }
+
+        // --- STREAMING_CHUNK:Background Starfield Canvas Animation... ---
+        function initBackground() {
+            const canvas = document.getElementById('space-bg');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w, h;
+            let particles = [];
+            
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            
+            for(let i=0; i<150; i++) {
+                particles.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 2 + 0.5,
+                    d: Math.random() * 0.5 + 0.1
+                });
+            }
+            
+            function animateBg() {
+                ctx.clearRect(0,0,w,h);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                for(let i=0; i<particles.length; i++) {
+                    let p = particles[i];
+                    ctx.moveTo(p.x, p.y);
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2, true);
+                    p.y += p.d;
+                    if(p.y > h) {
+                        p.y = 0;
+                        p.x = Math.random() * w;
+                    }
+                }
+                ctx.fill();
+                requestAnimationFrame(animateBg);
+            }
+            animateBg();
+        }
+        
+        window.addEventListener('load', initBackground);
+    </script>
+</body>
+</html>
